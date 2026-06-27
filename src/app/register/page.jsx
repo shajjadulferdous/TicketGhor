@@ -75,7 +75,7 @@ const RegisterPage = () => {
       </div>
 
       {/* Register Card Container */}
-      <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.06)] border border-neutral-100 p-8 z-10">
+      <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_8px_40px_rgba(0,0,0,0.06)] border  p-8 z-10">
         
         {/* Form Section */}
         <form onSubmit={handleRegister} className="flex flex-col gap-6">
@@ -97,7 +97,7 @@ const RegisterPage = () => {
                 placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-transparent border border-gray-200 rounded-full text-sm text-slate-800 placeholder-slate-400 transition-all duration-200 focus:outline-none focus:border-[#35858E] focus:ring-1 focus:ring-[#35858E]"
+                className="w-full pl-12 pr-4 py-3.5 bg-transparent border  rounded-full text-sm transition-all duration-200 focus:outline-none focus:border-[#35858E] focus:ring-1 focus:ring-[#35858E]"
               />
             </div>
           </div>

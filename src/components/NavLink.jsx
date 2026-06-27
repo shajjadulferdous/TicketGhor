@@ -9,7 +9,7 @@ const NavLink = ({href , children }) => {
     return (
         <Link href={href}
         >
-         <Button variant='ghost' className={`${isActive? 'bg-[#2B5748] text-white':''}`}>{children}</Button>
+         <Button variant='ghost' className={`${isActive? 'bg-[#35858E] text-white':''}`}>{children}</Button>
         </Link>
     );
 };

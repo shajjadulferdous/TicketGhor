@@ -21,15 +21,15 @@ const playfair = Playfair_Display({
 // Define the routes for each role
 const SIDEBAR_ROUTES = {
   vendor: [
-    { label: 'Vendor Profile', href: '/dashboard/vendor/profile', icon: FaUserCircle },
+    { label: 'Vendor Profile', href: '/dashboard/vendor/', icon: FaUserCircle },
     { label: 'Add Ticket', href: '/dashboard/vendor/add-ticket', icon: FaPlusCircle },
     { label: 'My Added Tickets', href: '/dashboard/vendor/tickets', icon: FaTicketAlt },
     { label: 'Requested Bookings', href: '/dashboard/vendor/bookings', icon: FaListAlt },
     { label: 'Revenue Overview', href: '/dashboard/vendor/revenue', icon: FaChartLine },
   ],
   admin: [
-    { label: 'Admin Profile', href: '/dashboard/admin/profile', icon: FaUserShield },
-    { label: 'Manage Tickets', href: '/dashboard/admin/tickets', icon: FaTicketAlt },
+    { label: 'Admin Profile', href: '/dashboard/admin/', icon: FaUserShield },
+    { label: 'Manage Tickets', href: '/dashboard/admin/', icon: FaTicketAlt },
     { label: 'Manage Users', href: '/dashboard/admin/users', icon: FaUsers },
     { label: 'Advertise Tickets', href: '/dashboard/admin/advertise', icon: FaAd },
   ],
@@ -45,8 +45,11 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   
   const { data: session, isPending } = authClient.useSession();
-  const userRole = session?.user?.role || 'user'; 
-  const links = session?.user ? SIDEBAR_ROUTES[userRole] : [];
+  
+  // Safe fallbacks to prevent crashes during UI testing
+  const user = session?.user;
+  const userRole = user?.role || 'user'; 
+  const links = SIDEBAR_ROUTES[userRole] || SIDEBAR_ROUTES['user'];
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -58,14 +61,13 @@ const Sidebar = () => {
     );
   }
 
-  if (!session?.user) return null; 
+  // NOTE: If you are testing the UI and want the sidebar to always show, comment out the line below.
+  // For production, keep it active so guests cannot see the dashboard sidebar.
+  if (!user) return null; 
 
   return (
     <>
-      {/* FIXED: Mobile Toggle Button 
-        Changed top-4 to top-[90px] so it sits completely below the 80px high NavBar 
-        and perfectly centers inside the Dashboard layout spacer.
-      */}
+      {/* Mobile Toggle Button - Positioned below the NavBar */}
       <button 
         onClick={toggleSidebar}
         className="fixed top-[90px] left-4 z-40 md:hidden p-2 bg-white rounded-lg shadow-sm border border-gray-100 text-slate-600 hover:text-[#35858E] transition-colors"
@@ -116,7 +118,7 @@ const Sidebar = () => {
               {userRole} Dashboard
             </div>
             
-            {links?.map((route, index) => {
+            {links.map((route, index) => {
               const Icon = route.icon;
               const isActive = pathname === route.href;
 
@@ -145,11 +147,11 @@ const Sidebar = () => {
           <div className="p-4 border-t border-gray-100">
             <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-gray-50">
               <div className="w-10 h-10 rounded-full bg-[#35858E] flex items-center justify-center text-white font-bold uppercase shadow-sm">
-                {session.user.name?.charAt(0) || 'U'}
+                {user?.name?.charAt(0) || 'U'}
               </div>
               <div className="flex flex-col overflow-hidden">
                 <span className="text-sm font-semibold text-slate-800 truncate">
-                  {session.user.name}
+                  {user?.name || 'Guest User'}
                 </span>
                 <span className="text-xs text-slate-500 truncate capitalize font-medium">
                   {userRole}

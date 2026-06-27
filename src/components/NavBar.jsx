@@ -62,7 +62,7 @@ const NavBar = () => {
     };
 
     return (
-    <nav className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white shadow-sm">
+    <nav className="sticky top-0 z-200 w-full border-b border-gray-100 bg-white shadow-sm">
       <header className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
         
         {/* Left Side: Logo */}

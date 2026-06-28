@@ -4,14 +4,12 @@ import { useState } from "react";
 import { 
   MdAdminPanelSettings, 
   MdStorefront, 
-  MdBan, 
   MdOutlineHourglassEmpty,
   MdPersonOutline
 } from "react-icons/md";
 import toast from "react-hot-toast";
-import { FaBan } from "react-icons/fa6";
+import { FaBan } from "react-icons/fa";
 
-// Premium badge styling for different roles
 const ROLE_MAP = {
   admin:  { bg: "bg-[#EBF5F6]", text: "text-[#35858E]", border: "border-[#D1E9EB]", label: "Admin" },
   vendor: { bg: "bg-amber-50", text: "text-amber-600", border: "border-amber-200/60", label: "Vendor" },
@@ -22,14 +20,15 @@ const ROLE_MAP = {
 export default function ManageUsers({ initialUsers = [] }) {
   const [users, setUsers] = useState(initialUsers);
   
-  // Track which user is loading and what action is being performed
-  const [loadingState, setLoadingState] = useState({ id: null, action: null });
+  // Track state by email instead of ID
+  const [loadingState, setLoadingState] = useState({ email: null, action: null });
 
-  async function updateUserRole(id, newRole) {
-    setLoadingState({ id, action: newRole });
+  async function updateUserRole(email, newRole) {
+    setLoadingState({ email, action: newRole });
     try {
-      // Adjust this endpoint to match your backend routing
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/${id}/role`, {
+        console.log(email)
+      // API call targeting the user by email parameter
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${email}/role`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: newRole }),
@@ -37,24 +36,21 @@ export default function ManageUsers({ initialUsers = [] }) {
 
       if (!res.ok) throw new Error("Request failed");
 
-      // Update the UI optimistically
+      // Optimistic UI state matching by user email
       setUsers((prev) =>
-        prev.map((u) => {
-          const uId = u._id?.$oid ?? u._id;
-          return uId === id ? { ...u, role: newRole } : u;
-        })
+        prev.map((u) => (u.email === email ? { ...u, role: newRole } : u))
       );
       
       if (newRole === "fraud") {
-        toast.success("Vendor marked as fraud. Their tickets are now hidden.");
+        toast.success("Vendor marked as fraud. Listings hidden.");
       } else {
-        toast.success(`User successfully upgraded to ${newRole}!`);
+        toast.success(`User updated to ${newRole}!`);
       }
       
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoadingState({ id: null, action: null });
+      setLoadingState({ email: null, action: null });
     }
   }
 
@@ -65,11 +61,11 @@ export default function ManageUsers({ initialUsers = [] }) {
       <div className="mb-8">
         <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Manage Users</h1>
         <p className="text-sm font-medium text-gray-500 mt-2">
-          Control platform access, assign administrative or vendor privileges, and manage fraudulent accounts.
+          Control platform privileges and manage fraud accounts verified by user email addresses.
         </p>
       </div>
 
-      {/* ── Premium Stats Row ── */}
+      {/* ── Stats Row ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
         {[
           { label: "Total Users", color: "bg-[#F4F7F8] text-[#35858E]", count: users.length },
@@ -84,13 +80,13 @@ export default function ManageUsers({ initialUsers = [] }) {
         ))}
       </div>
 
-      {/* ── Custom Premium Table ── */}
+      {/* ── Table ── */}
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-lg shadow-gray-200/40 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-[#F8FAFC] border-b border-gray-100">
               <tr>
-                {["Name", "Email", "Current Role", "Actions"].map((head) => (
+                {["Name", "Email Address", "Current Role", "Actions"].map((head) => (
                   <th key={head} className={`px-8 py-5 text-[11px] font-bold text-gray-400 uppercase tracking-widest ${head === 'Actions' ? 'text-right' : ''}`}>
                     {head}
                   </th>
@@ -109,12 +105,11 @@ export default function ManageUsers({ initialUsers = [] }) {
                 </tr>
               ) : (
                 users.map((user) => {
-                  const id = user._id?.$oid ?? user._id;
-                  const isAnyLoading = loadingState.id === id;
+                  const isAnyLoading = loadingState.email === user.email;
                   const cfg = ROLE_MAP[user.role] ?? ROLE_MAP.user;
 
                   return (
-                    <tr key={id} className={`transition-colors duration-200 group ${user.role === 'fraud' ? 'bg-rose-50/30' : 'hover:bg-gray-50/50'}`}>
+                    <tr key={user.email} className={`transition-colors duration-200 group ${user.role === 'fraud' ? 'bg-rose-50/30' : 'hover:bg-gray-50/50'}`}>
                       
                       {/* Name */}
                       <td className="px-8 py-5">
@@ -129,11 +124,11 @@ export default function ManageUsers({ initialUsers = [] }) {
                       </td>
                       
                       {/* Email */}
-                      <td className={`px-8 py-5 font-medium ${user.role === 'fraud' ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <td className={`px-8 py-5 font-semibold ${user.role === 'fraud' ? 'text-gray-400' : 'text-gray-700'}`}>
                         {user.email}
                       </td>
                       
-                      {/* Role Badge */}
+                      {/* Role */}
                       <td className="px-8 py-5">
                         <span className={`px-3 py-1.5 rounded-lg border text-[11px] font-extrabold uppercase tracking-wider ${cfg.bg} ${cfg.text} ${cfg.border}`}>
                           {cfg.label}
@@ -144,54 +139,50 @@ export default function ManageUsers({ initialUsers = [] }) {
                       <td className="px-8 py-5">
                         <div className="flex items-center justify-end gap-2.5">
                           
-                          {/* Make Admin Button */}
+                          {/* Make Admin */}
                           <button
                             disabled={user.role === "admin" || isAnyLoading}
-                            onClick={() => updateUserRole(id, "admin")}
+                            onClick={() => updateUserRole(user.email, "admin")}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 
                               ${user.role === "admin" 
                                 ? "hidden" 
                                 : "bg-[#EBF5F6] text-[#35858E] hover:bg-[#35858E] hover:text-white border border-[#D1E9EB] hover:border-[#35858E] shadow-sm"}`}
-                            title="Make Admin"
                           >
-                            {loadingState.id === id && loadingState.action === "admin" 
+                            {loadingState.email === user.email && loadingState.action === "admin" 
                               ? <MdOutlineHourglassEmpty className="animate-spin" size={14} /> 
                               : <MdAdminPanelSettings size={14} />}
                             Make Admin
                           </button>
 
-                          {/* Make Vendor Button */}
+                          {/* Make Vendor */}
                           <button
                             disabled={user.role === "vendor" || isAnyLoading}
-                            onClick={() => updateUserRole(id, "vendor")}
+                            onClick={() => updateUserRole(user.email, "vendor")}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 
                               ${user.role === "vendor" || user.role === "admin"
                                 ? "hidden" 
                                 : "bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border border-amber-200/60 hover:border-amber-500 shadow-sm"}`}
-                            title="Make Vendor"
                           >
-                            {loadingState.id === id && loadingState.action === "vendor" 
+                            {loadingState.email === user.email && loadingState.action === "vendor" 
                               ? <MdOutlineHourglassEmpty className="animate-spin" size={14} /> 
                               : <MdStorefront size={14} />}
                             Make Vendor
                           </button>
 
-                          {/* Mark as Fraud Button (ONLY visible for vendors) */}
+                          {/* Mark as Fraud */}
                           {user.role === "vendor" && (
                             <button
                               disabled={isAnyLoading}
-                              onClick={() => updateUserRole(id, "fraud")}
+                              onClick={() => updateUserRole(user.email, "fraud")}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white border border-rose-200/60 hover:border-rose-500 shadow-sm transition-all duration-200"
-                              title="Mark as Fraud"
                             >
-                              {loadingState.id === id && loadingState.action === "fraud" 
+                              {loadingState.email === user.email && loadingState.action === "fraud" 
                                 ? <MdOutlineHourglassEmpty className="animate-spin" size={14} /> 
                                 : <FaBan size={14} />}
                               Mark as Fraud
                             </button>
                           )}
 
-                          {/* Safe State Fallback */}
                           {user.role === "admin" && (
                             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2">Highest Privileges</span>
                           )}

@@ -29,7 +29,7 @@ const SIDEBAR_ROUTES = {
   ],
   admin: [
     { label: 'Admin Profile', href: '/dashboard/admin/', icon: FaUserShield },
-    { label: 'Manage Tickets', href: '/dashboard/admin/', icon: FaTicketAlt },
+    { label: 'Manage Tickets', href: '/dashboard/admin/manage-tickets', icon: FaTicketAlt },
     { label: 'Manage Users', href: '/dashboard/admin/users', icon: FaUsers },
     { label: 'Advertise Tickets', href: '/dashboard/admin/advertise', icon: FaAd },
   ],

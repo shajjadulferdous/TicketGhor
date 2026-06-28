@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect, useRef } from 'react';
 import { Playfair_Display } from 'next/font/google';
+import NavLink from './NavLink';
 
 // Load the premium font
 const playfair = Playfair_Display({ 
@@ -39,9 +40,9 @@ const NavBar = () => {
     // Determine correct dashboard route based on user role
     const getDashboardRoute = () => {
       switch (userRole) {
-        case 'admin': return '/dashboard/admin/profile';
-        case 'vendor': return '/dashboard/vendor/profile';
-        default: return '/dashboard/user/profile';
+        case 'admin': return '/dashboard/admin';
+        case 'vendor': return '/dashboard/vendor';
+        default: return '/dashboard/user';
       }
     };
 
@@ -151,15 +152,15 @@ const NavBar = () => {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-[#35858E] transition-colors">
+                <NavLink href="/login" className=" font-bold text-slate-600 hover:text-[#35858E] transition-colors">
                   Login
-                </Link>
-                <Link 
+                </NavLink>
+                <NavLink 
                   href="/register" 
-                  className="text-sm font-bold bg-[#35858E] text-white px-5 py-2.5 rounded-full hover:bg-[#28666d] shadow-md shadow-[#35858E]/20 transition-all"
+                  className="transition-all"
                 >
                   Sign Up
-                </Link>
+                </NavLink>
               </div>
             )}
           </div>

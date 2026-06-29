@@ -5,7 +5,7 @@ import { Button } from '@heroui/react';
 import { stripe } from '@/lib/stripe';
 
 export default async function Success({ searchParams }) {
-
+  // Await searchParams for Next.js 15 compatibility
   const { session_id } = await searchParams;
 
   if (!session_id) {
@@ -15,35 +15,46 @@ export default async function Success({ searchParams }) {
   const session = await stripe.checkout.sessions.retrieve(session_id, {
     expand: ['line_items', 'payment_intent']
   });
-  const {status, customer_email: customerEmail} = session;
+  
+  const { status, customer_email: customerEmail } = session;
+  
   if (status === 'open') {
     return redirect('/');
   }
    
-  console.log('Checkout session details:', session);
   if (status === 'complete') {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-           transactionId: session.payment_intent?.id,
+    const transactionId = session.payment_intent?.id;
+
+    try {
+      // Send the order to the backend
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        // Prevent Next.js from caching this request
+        cache: 'no-store', 
+        body: JSON.stringify({
+           transactionId: transactionId,
            amount: session.amount_total / 100,
-           title:session.metadata?.title,
-           time:new Date(),
+           title: session.metadata?.title,
+           time: new Date(),
            ticketId: session?.metadata?._id,
-           quantity:session?.metadata?.quantity,
+           quantity: session?.metadata?.quantity,
            userEmail: customerEmail,
-           bookingId
-      })
-    }).catch((error) => {
-      console.error('Error recording order in the database:', error);
-      throw new Error('Failed to record order in the database');    
+           bookingId:session?.metadata?.bookingId 
+        })
       });
 
-    if (!response.ok) {
-      throw new Error('Failed to record order in the database');
+      // If the backend returns a 409 Conflict (meaning it already exists), we just ignore it 
+      // and show the success page anyway because the payment is complete.
+      if (!response.ok && response.status !== 409) {
+        console.error('Failed to record order. Status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error communicating with backend:', error);
+      // We don't throw an error here, otherwise the user sees a broken page 
+      // even though their payment actually succeeded.
     }
 
     return (
@@ -89,7 +100,7 @@ export default async function Success({ searchParams }) {
 
             {/* Actions */}
             <div className="w-full flex flex-col sm:flex-row gap-3">
-              <Link href="/dashboard/buyer/my-orders" className="flex-1">
+              <Link href="/dashboard/user/booked-tickets" className="flex-1">
                 <Button 
                   className="w-full h-12 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
                 >
@@ -97,7 +108,7 @@ export default async function Success({ searchParams }) {
                   View Orders
                 </Button>
               </Link>
-              <Link href="/products" className="flex-1">
+              <Link href="/tickets" className="flex-1">
                 <Button 
                   className="w-full h-12 bg-[#35858E] text-white font-bold rounded-xl hover:bg-[#2b6d75] transition-all shadow-lg shadow-[#35858E]/20"
                 >

@@ -8,6 +8,7 @@ import {
   MdClose, MdOutlineHourglassEmpty 
 } from 'react-icons/md';
 import { FaBus, FaTrain, FaShip, FaPlane } from 'react-icons/fa';
+import { authClient } from '@/lib/auth-client';
 
 const TRANSPORT_ICON = {
   bus: <FaBus size={20} />, train: <FaTrain size={20} />, 
@@ -50,7 +51,13 @@ export default function TicketDetailsClient({ ticket }) {
 
     return () => clearInterval(timer);
   }, [ticket?.departure]);
-
+  
+   const { 
+        data: session, 
+        isPending, //loading state
+        error, //error object
+        refetch //refetch the session
+    } = authClient.useSession() 
   // ── Booking Submission Logic ──
   const handleBookTicket = async (e) => {
     e.preventDefault();
@@ -67,13 +74,14 @@ export default function TicketDetailsClient({ ticket }) {
 
     try {
       // POST to your bookings API. Status defaults to "Pending" on the backend.
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/bookings`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ticketId: ticket._id || ticket.id,
           quantity: Number(quantity),
           totalPrice: Number(quantity) * Number(ticket.price),
+          userEmail: session ?.user?.email
           // Note: You might also need to pass a userId or userEmail here from your auth context
         }),
       });
@@ -84,7 +92,7 @@ export default function TicketDetailsClient({ ticket }) {
       setIsModalOpen(false);
       
       // Redirect to "My Booked Tickets" page
-      router.push('/dashboard/user/my-booked-tickets');
+      router.push('/dashboard/user/booked-tickets');
       
     } catch (error) {
       console.error(error);

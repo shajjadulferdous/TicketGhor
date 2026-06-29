@@ -31,9 +31,12 @@ export default async function Success({ searchParams }) {
            transactionId: session.payment_intent?.id,
            amount: session.amount_total / 100,
            title:session.metadata?.title,
-           time:new Date()
+           time:new Date(),
+           ticketId: session?.metadata?._id,
+           quantity:session?.metadata?.quantity,
+           userEmail: customerEmail,
+           bookingId
       })
-
     }).catch((error) => {
       console.error('Error recording order in the database:', error);
       throw new Error('Failed to record order in the database');    

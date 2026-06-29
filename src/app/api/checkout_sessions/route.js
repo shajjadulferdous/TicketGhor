@@ -34,7 +34,11 @@ export async function POST(req) {
       },
       unit_amount: ticket?.price * 100, 
     }
-    const metadata = ticket;
+    const metadata = {
+      ...ticket,
+      quantity,
+      bookingId
+    };
      const session = await stripe.checkout.sessions.create({
       metadata:metadata,
       customer_email: user.email,

@@ -152,12 +152,12 @@ function BookingCard({ booking }) {
     setIsProcessingPayment(true);
     try {
       // Create a Stripe Checkout Session on your backend
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/stripe/create-checkout-session`, {
+      const res = await fetch(`/api/checkout_sessions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId }),
+        body: JSON.stringify({ bookingId , quantity , totalPrice , ticket }),
       });
-
+      // console.log()
       if (!res.ok) throw new Error("Payment initialization failed");
       
       const { url } = await res.json();
@@ -165,7 +165,7 @@ function BookingCard({ booking }) {
       
       window.location.href = url;
     } catch (error) {
-      toast.error("Failed to process payment. Please try again.");
+      toast.error(error.message);
       setIsProcessingPayment(false);
     }
   };

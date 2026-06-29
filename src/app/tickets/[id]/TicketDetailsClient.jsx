@@ -50,7 +50,7 @@ export default function TicketDetailsClient({ ticket }) {
 
     return () => clearInterval(timer);
   }, [ticket?.departure]);
-  
+
   // ── Booking Submission Logic ──
   const handleBookTicket = async (e) => {
     e.preventDefault();

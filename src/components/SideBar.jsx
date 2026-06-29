@@ -34,7 +34,7 @@ const SIDEBAR_ROUTES = {
     { label: 'Advertise Tickets', href: '/dashboard/admin/advertise', icon: FaAd },
   ],
   user: [
-    { label: 'User Profile', href: '/dashboard/user/profile', icon: FaUser },
+    { label: 'User Profile', href: '/dashboard/user/', icon: FaUser },
     { label: 'My Booked Tickets', href: '/dashboard/user/booked-tickets', icon: FaTicketAlt },
     { label: 'Transaction History', href: '/dashboard/user/transactions', icon: FaHistory },
   ]
@@ -61,8 +61,6 @@ const Sidebar = () => {
     );
   }
 
-  // NOTE: If you are testing the UI and want the sidebar to always show, comment out the line below.
-  // For production, keep it active so guests cannot see the dashboard sidebar.
   if (!user) return null; 
 
   return (

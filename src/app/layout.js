@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-full flex flex-col">
         <NavBar/>
-        {children}
+         {children}
         <Toaster/>
         </body>
     </html>

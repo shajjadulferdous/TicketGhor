@@ -24,27 +24,37 @@ export default function ProfilePage() {
     } = authClient.useSession() 
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-         const user = session?.user;
-         setUser(user || {
-            name: "Shajjadul Ferdous",
-            email: "2022331015@student.sust.edu",
-            emailVerified: false,
-            image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop",
-            role: "user",
-            createdAt: "2026-06-28T16:43:41.945Z"
-          });
-       
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserProfile();
-  }, [isPending]);
+     const fetchUserProfile = async () => {
+       try {
+          const userk = session?.user;
+          const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/${userk?.id}`,
+           {
+             cache:'no-store'
+           }
+          )
+          if (!result.ok){
+             return;
+          }
+          const userd = await result.json();
+ 
+          setUser(userd || {
+             name: "Shajjadul Ferdous",
+             email: "2022331015@student.sust.edu",
+             emailVerified: false,
+             image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop",
+             role: "user",
+             createdAt: "2026-06-28T16:43:41.945Z"
+           });
+        
+       } catch (err) {
+         console.error(err);
+       } finally {
+         setIsLoading(false);
+       }
+     };
+ 
+     fetchUserProfile();
+   }, [isPending]);
 
   if (isLoading) {
     return (

@@ -1,216 +1,171 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { 
-  MdArrowBack, 
-  MdSave, 
-  MdLink, 
-  MdPerson, 
+  MdAccountCircle, 
   MdEmail, 
-  MdAdminPanelSettings 
+  MdVerified, 
+  MdWarning, 
+  MdAdminPanelSettings, 
+  MdCalendarMonth, 
+  MdEdit 
 } from 'react-icons/md';
 import { authClient } from '@/lib/auth-client';
 
-export default function EditProfilePage() {
-  const router = useRouter();
-  
-  // ── Editable States ──
-  const [name, setName] = useState("");
-  const [image, setImage] = useState("");
-  
-  // ── Read-Only States ──
-  const [email, setEmail] = useState(""); 
-  const [role, setRole] = useState("");
-
-  // ── UI States ──
-  const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+export default function ProfilePage() {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { 
-          data: session, 
-          isPending, //loading state
-          error, //error object
-          refetch //refetch the session
-  } = authClient.useSession() 
+        data: session, 
+        isPending, //loading state
+        error, //error object
+        refetch //refetch the session
+    } = authClient.useSession() 
+
   useEffect(() => {
-    // Simulated fetch of current user details
-    setName(session?.user?.name||"Shajjadul Ferdous" );
-    setImage(session?.user?.image ||"https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop");
-    setEmail(session?.user?.email || "2022331015@student.sust.edu");
-    setRole(session?.user?.role || "user");
-  }, [isPending]);
+     const fetchUserProfile = async () => {
+       try {
+          const userk = session?.user;
+          const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/${userk?.id}`,
+           {
+             cache:'no-store'
+           }
+          )
+          if (!result.ok){
+             return;
+          }
+          const userd = await result.json();
+ 
+          setUser(userd || {
+             name: "Shajjadul Ferdous",
+             email: "2022331015@student.sust.edu",
+             emailVerified: false,
+             image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop",
+             role: "user",
+             createdAt: "2026-06-28T16:43:41.945Z"
+           });
+        
+       } catch (err) {
+         console.error(err);
+       } finally {
+         setIsLoading(false);
+       }
+     };
+ 
+     fetchUserProfile();
+   }, [isPending]);
 
-  const handleUpdate = async (e) => {
-    e.preventDefault();
-    setIsSaving(true);
-    setMessage({ type: "", text: "" });
-  
-    try {
-       const { data, error } = await authClient.token();
-
-       const {token} = data;
-
-
-
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await fetch(`${baseUrl}/user/update-profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" ,
-         Authorization: `Bearer ${token}`
-        },
-        // Only sending the fields that are allowed to be modified
-        body: JSON.stringify({ email, name, image }) 
-      });
-
-      if (res.ok) {
-        setMessage({ type: "success", text: "Profile updated successfully! Redirecting..." });
-        setTimeout(() => router.push("/dashboard/admin"), 1500);
-      } else {
-        throw new Error("Failed to update profile.");
-      }
-    } catch (err) {
-      // Fallback for offline testing
-      setMessage({ type: "success", text: "Changes saved successfully! Redirecting..." });
-      setTimeout(() => router.push("/dashboard/admin"), 1500);
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F4F7F8] flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-[#35858E] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F7F8] font-sans py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         
-        {/* Navigation Action Hook */}
-        <button 
-          onClick={() => router.push('/dashboard/admin')}
-          className="mb-6 flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#35858E] transition-colors group"
-        >
-          <MdArrowBack size={18} className="transition-transform group-hover:-translate-x-1" />
-          Back to Profile
-        </button>
-
-        {/* Form Container */}
+        {/* Main Profile Card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           
-          <div className="px-8 pt-8 pb-6 border-b border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Edit Profile</h2>
-            <p className="text-sm font-medium text-gray-500 mt-1">
-              Update your personal information. Some fields are locked for security purposes.
-            </p>
+          {/* Banner Graphic Backdrop */}
+          <div className="h-40 bg-gradient-to-r from-[#2b6d74] to-[#35858E] relative">
+            <div className="absolute inset-0 bg-black/5" />
           </div>
 
-          <div className="p-8">
-            {/* Feedback Toast Banner */}
-            {message.text && (
-              <div className={`mb-6 p-4 rounded-lg text-sm font-semibold border flex items-center gap-2 ${
-                message.type === 'success' 
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                  : 'bg-rose-50 text-rose-700 border-rose-200'
-              }`}>
-                {message.text}
+          {/* Profile Header Block */}
+          <div className="px-8 flex flex-col md:flex-row items-center md:items-end justify-between relative -mt-16 pb-8 gap-6 border-b border-gray-100">
+            
+            <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
+              {/* Circular Avatar */}
+              <img 
+                src={user?.image || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=300&auto=format&fit=crop"} 
+                alt={user?.name}
+                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-sm bg-white relative z-10"
+              />
+              <div className="mb-2">
+                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+                  {user?.name}
+                </h1>
+                <p className="text-sm font-medium text-gray-500 capitalize flex items-center gap-1.5 justify-center md:justify-start mt-1">
+                  <MdAdminPanelSettings className="text-[#35858E]" size={18} />
+                  System {user?.role || "user"}
+                </p>
               </div>
-            )}
+            </div>
 
-            <form onSubmit={handleUpdate} className="space-y-6">
+            {/* Professional Outline Button */}
+            <Link 
+              href="/dashboard/admin/edit"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 hover:text-[#35858E] hover:border-[#35858E] text-gray-700 text-sm font-semibold rounded-lg shadow-sm transition-all whitespace-nowrap mb-2"
+            >
+              <MdEdit size={16} />
+              Edit Profile
+            </Link>
+          </div>
+
+          {/* Detailed Info Section */}
+          <div className="bg-gray-50/30 px-8 py-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">Personal Information</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-12">
               
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                {/* Input: Editable Name */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                    Full Name
-                  </label>
-                  <div className="relative">
-                    <MdPerson className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      value={name} 
-                      onChange={(e) => setName(e.target.value)} 
-                      required
-                      placeholder="Enter your full name"
-                      className="w-full bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-lg pl-11 pr-4 py-3 focus:outline-none focus:border-[#35858E] focus:ring-1 focus:ring-[#35858E] transition-all"
-                    />
-                  </div>
-                </div>
+              {/* Item: Full Name */}
+              <div>
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                  <MdAccountCircle size={16} /> Full Name
+                </span>
+                <p className="text-base font-medium text-gray-900">
+                  {user?.name}
+                </p>
+              </div>
 
-                {/* Input: Editable Avatar Image URL */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                    Profile Image URL
-                  </label>
-                  <div className="relative">
-                    <MdLink className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="url" 
-                      value={image} 
-                      onChange={(e) => setImage(e.target.value)} 
-                      placeholder="https://example.com/avatar.jpg"
-                      className="w-full bg-white border border-gray-300 text-gray-900 text-sm font-medium rounded-lg pl-11 pr-4 py-3 focus:outline-none focus:border-[#35858E] focus:ring-1 focus:ring-[#35858E] transition-all"
-                    />
-                  </div>
-                  {/* Subtle Image Preview Hint */}
-                  {image && (
-                    <div className="mt-3 flex items-center gap-3">
-                      <img src={image} alt="Preview" className="w-10 h-10 rounded-full object-cover border border-gray-200" onError={(e) => e.target.style.display = 'none'} />
-                      <span className="text-xs font-medium text-gray-400">Image preview</span>
-                    </div>
+              {/* Item: Email Address */}
+              <div>
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                  <MdEmail size={16} /> Email Address
+                </span>
+                <p className="text-base font-medium text-gray-900 break-all">
+                  {user?.email}
+                </p>
+              </div>
+
+              {/* Item: Verification Status */}
+              <div>
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+                   Account Status
+                </span>
+                <div>
+                  {user?.emailVerified ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-md border border-emerald-200">
+                      <MdVerified size={14} /> Verified Account
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 rounded-md border border-amber-200">
+                      <MdWarning size={14} /> Verification Pending
+                    </span>
                   )}
                 </div>
-
-                {/* Input: Read-Only Email */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                    Email Address <span className="normal-case tracking-normal text-gray-400 font-medium">(Locked)</span>
-                  </label>
-                  <div className="relative">
-                    <MdEmail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="email" 
-                      value={email} 
-                      disabled 
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-500 text-sm font-medium rounded-lg pl-11 pr-4 py-3 cursor-not-allowed focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Input: Read-Only Role */}
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">
-                    System Role <span className="normal-case tracking-normal text-gray-400 font-medium">(Locked)</span>
-                  </label>
-                  <div className="relative">
-                    <MdAdminPanelSettings className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      value={role} 
-                      disabled 
-                      className="w-full bg-gray-50 border border-gray-200 text-gray-500 text-sm font-medium rounded-lg pl-11 pr-4 py-3 cursor-not-allowed focus:outline-none capitalize"
-                    />
-                  </div>
-                </div>
               </div>
 
-              {/* Form Actions Footer */}
-              <div className="pt-6 mt-6 border-t border-gray-100 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => router.push('/dashboard/admin')}
-                  className="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="flex items-center gap-2 px-6 py-2.5 bg-[#35858E] hover:bg-[#2b6d74] text-white text-sm font-semibold rounded-lg shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                  <MdSave size={18} />
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </button>
+              {/* Item: Created Date */}
+              <div>
+                <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                  <MdCalendarMonth size={16} /> Member Since
+                </span>
+                <p className="text-base font-medium text-gray-900">
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                  }) : "N/A"}
+                </p>
               </div>
 
-            </form>
+            </div>
           </div>
+
         </div>
 
       </div>

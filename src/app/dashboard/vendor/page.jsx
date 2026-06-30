@@ -12,22 +12,33 @@ import {
   MdEdit 
 } from 'react-icons/md';
 import { authClient } from '@/lib/auth-client';
+import { methods } from 'better-auth/react';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const { 
         data: session, 
-        isPending, //loading state
-        error, //error object
-        refetch //refetch the session
+        isPending,
+        error, 
+        refetch 
     } = authClient.useSession() 
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-         const user = session?.user;
-         setUser(user || {
+         const userk = session?.user;
+         const result = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/me/${userk?.id}`,
+          {
+            cache:'no-store'
+          }
+         )
+         if (!result.ok){
+            return;
+         }
+         const userd = await result.json();
+
+         setUser(userd || {
             name: "Shajjadul Ferdous",
             email: "2022331015@student.sust.edu",
             emailVerified: false,
@@ -89,7 +100,7 @@ export default function ProfilePage() {
 
             {/* Professional Outline Button */}
             <Link 
-              href="/dashboard/user/edit"
+              href="/dashboard/vendor/edit"
               className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 hover:bg-gray-50 hover:text-[#35858E] hover:border-[#35858E] text-gray-700 text-sm font-semibold rounded-lg shadow-sm transition-all whitespace-nowrap mb-2"
             >
               <MdEdit size={16} />

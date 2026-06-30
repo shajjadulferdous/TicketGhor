@@ -12,7 +12,7 @@ const Layout = async ({ children }) => {
         redirect('/login');
     }
 
-    if (session?.user?.role !== 'vendor') {
+    if (session?.user?.role != 'vendor') {
         return <UnauthorizedPage />;
     }
 

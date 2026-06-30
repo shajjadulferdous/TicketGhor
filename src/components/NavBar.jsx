@@ -132,7 +132,7 @@ const NavBar = () => {
                       Dashboard
                     </Link>
                     <Link 
-                      href="/my-profile"
+                      href={`/dashboard/${user?.role}`}
                       onClick={() => setIsProfileOpen(false)}
                       className="block px-4 py-2 text-sm text-slate-700 hover:bg-[#35858E]/10 hover:text-[#35858E] transition-colors"
                     >

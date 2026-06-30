@@ -16,6 +16,7 @@ export const auth = betterAuth({
             } 
         }
     },
+    
      plugins: [
         jwt(), 
     ],
@@ -26,7 +27,13 @@ export const auth = betterAuth({
             strategy: "jwt" 
         }
     },
-  database: mongodbAdapter(db, {
+    socialProviders: {
+        google: { 
+            clientId: process.env.GOOGLE_CLIENT_ID , 
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET, 
+        }, 
+    },
+   database: mongodbAdapter(db, {
     // Optional: if you don't provide a client, database transactions won't be enabled.
     client
   }),

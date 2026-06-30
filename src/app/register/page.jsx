@@ -178,12 +178,7 @@ const RegisterPage = () => {
         </div>
       </div>
 
-      {/* Copyright Footer (Outside Card) */}
-      <div className="mt-10 text-center z-10">
-        <p className="text-sm  font-medium">
-          Copyright © {new Date().getFullYear()} TicketGhor. All Rights Reserved.
-        </p>
-      </div>
+     
 
     </div>
   );

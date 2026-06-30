@@ -34,9 +34,12 @@ export default function ManageTickets({ initialTickets = [] }) {
   async function updateStatus(id, newStatus) {
     setLoadingState({ id, action: newStatus });
     try {
+       const { data, error } = await authClient.token();
+
+      const {token} = data;
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/tickets/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status: newStatus }),
       });
 

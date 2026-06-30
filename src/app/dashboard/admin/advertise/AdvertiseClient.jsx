@@ -1,5 +1,6 @@
 "use client";
 
+import { authClient } from '@/lib/auth-client';
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { MdCampaign, MdLocationOn, MdArrowForward } from 'react-icons/md';
@@ -10,7 +11,7 @@ export default function AdvertiseClient({ initialTickets }) {
 
     // Calculate how many tickets are currently advertised
     const advertisedCount = tickets.filter(t => t.isAdvertised).length;
-
+   
     const handleToggleAdvertise = async (ticket) => {
         const currentlyAdvertised = ticket.isAdvertised;
 
@@ -23,10 +24,15 @@ export default function AdvertiseClient({ initialTickets }) {
         setProcessingId(ticket._id);
 
         try {
+             const { data, error } = await authClient.token();
+
+            const {token} = data;
             // Send PATCH request to backend to update advertisement status
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${ticket._id}/advertise`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: { "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                 },
                 body: JSON.stringify({ isAdvertised: !currentlyAdvertised })
             });
 

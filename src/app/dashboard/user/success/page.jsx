@@ -26,11 +26,16 @@ export default async function Success({ searchParams }) {
     const transactionId = session.payment_intent?.id;
 
     try {
+      
+       const { data, error } = await authClient.token();
+
+       const {token} = data;
       // Send the order to the backend
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
         },
         // Prevent Next.js from caching this request
         cache: 'no-store', 

@@ -26,11 +26,14 @@ export default function ManageUsers({ initialUsers = [] }) {
   async function updateUserRole(email, newRole) {
     setLoadingState({ email, action: newRole });
     try {
+       const { data, error } = await authClient.token();
+
+       const {token} = data;
         console.log(email)
       // API call targeting the user by email parameter
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${email}/role`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ role: newRole }),
       });
 

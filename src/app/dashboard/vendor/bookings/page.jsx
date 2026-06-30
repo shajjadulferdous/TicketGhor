@@ -24,8 +24,15 @@ export default function RequestedBookingsPage() {
   const fetchRequests = async () => {
     if (!vendorEmail) return;
     try {
+       const { data:valueoftoken, error } = await authClient.token();
+
+      const {token} = valueoftoken;
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/vendor/bookings/${vendorEmail}`, {
-        cache: 'no-store'
+        cache: 'no-store',
+        headers:{
+          "Content-Type":"application/json",
+          Authorization: `Bearer ${token}`
+        }
       });
       if (!res.ok) throw new Error("Failed to load requests");
       const data = await res.json();
@@ -52,9 +59,14 @@ export default function RequestedBookingsPage() {
   const handleStatusUpdate = async (bookingId, action) => {
     setProcessingId(bookingId);
     try {
+      const { data, error } = await authClient.token();
+
+     const {token} = data;
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+         },
         body: JSON.stringify({ status: action }), // "accepted" or "rejected"
       });
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
@@ -43,17 +43,19 @@ const SIDEBAR_ROUTES = {
 const Sidebar = () => {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
   const { data: session, isPending } = authClient.useSession();
-  
-  // Safe fallbacks to prevent crashes during UI testing
-  const user = session?.user;
-  const userRole = user?.role || 'user'; 
-  const links = SIDEBAR_ROUTES[userRole] || SIDEBAR_ROUTES['user'];
+
+  // 1. Wait for component to mount on the client to prevent hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  if (isPending) {
+  // 2. Check both isPending AND isMounted before rendering the authenticated UI
+  if (!isMounted || isPending) {
     return (
       <div className="hidden md:flex h-screen w-64 items-center justify-center border-r border-gray-200 bg-white">
         <Spinner size="lg" className="text-[#35858E]" />
@@ -61,7 +63,12 @@ const Sidebar = () => {
     );
   }
 
+  // Safe fallbacks 
+  const user = session?.user;
   if (!user) return null; 
+
+  const userRole = user?.role || 'user'; 
+  const links = SIDEBAR_ROUTES[userRole] || SIDEBAR_ROUTES['user'];
 
   return (
     <>

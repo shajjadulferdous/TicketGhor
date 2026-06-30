@@ -61,7 +61,10 @@ export default function TicketDetailsClient({ ticket }) {
   // ── Booking Submission Logic ──
   const handleBookTicket = async (e) => {
     e.preventDefault();
-    
+    if(session?.user?.role != 'user'){
+        toast.error("Only user can book ticket")
+        return;
+    }
     // Safety check: Booking quantity can't be greater than Ticket Quantity
     if (quantity > ticket.quantity) {
       return toast.error(`You cannot book more than ${ticket.quantity} tickets.`);
@@ -73,10 +76,15 @@ export default function TicketDetailsClient({ ticket }) {
     setIsSubmitting(true);
 
     try {
+       const { data, error } = await authClient.token();
+
+       const {token} = data;
       // POST to your bookings API. Status defaults to "Pending" on the backend.
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" ,
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify({
           ticketId: ticket._id || ticket.id,
           quantity: Number(quantity),

@@ -1,8 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { MdLocationOn, MdSwapHoriz, MdFilterList, MdSort, MdOutlineHourglassEmpty } from 'react-icons/md';
-import TicketCard from '@/components/TicketCard'; // Ensure this path matches where you saved the card
+import { 
+  MdLocationOn, 
+  MdSwapHoriz, 
+  MdFilterList, 
+  MdSort, 
+  MdOutlineHourglassEmpty,
+  MdChevronLeft,
+  MdChevronRight
+} from 'react-icons/md';
+import TicketCard from '@/components/TicketCard';
 
 export default function TicketPage() {
   // ── Data & Loading States ──
@@ -15,9 +23,12 @@ export default function TicketPage() {
   const [filterType, setFilterType] = useState("all");
   const [sortOrder, setSortOrder] = useState("default");
 
+  // ── Pagination States ──
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8; // Adjust how many tickets you want per page
+
   // ── Fetch Tickets from Backend ──
   useEffect(() => {
-    // 1. Define the fetch function
     const fetchTickets = async () => {
       setIsLoading(true);
       try {
@@ -27,14 +38,16 @@ export default function TicketPage() {
         if (filterType !== "all") params.append("transport", filterType);
         if (sortOrder !== "default") params.append("sort", sortOrder);
 
-        // Adjust NEXT_PUBLIC_API_URL to match your backend port (e.g., http://localhost:5000)
-        const baseUrl = process.env.NEXT_PUBLIC_API_URL ;
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
         const res = await fetch(`${baseUrl}/tickets?${params.toString()}`);
         
         if (!res.ok) throw new Error("Failed to fetch tickets");
         
         const data = await res.json();
         setTickets(data);
+        
+        // Reset to page 1 whenever new search/filters are applied
+        setCurrentPage(1); 
       } catch (error) {
         console.error("Error fetching tickets:", error);
       } finally {
@@ -42,21 +55,30 @@ export default function TicketPage() {
       }
     };
 
-    // 2. Implement Debouncing (waits 500ms after user stops typing to fetch)
     const delayDebounceFn = setTimeout(() => {
       fetchTickets();
     }, 500);
 
-    // 3. Cleanup function to clear the timeout if user keeps typing
     return () => clearTimeout(delayDebounceFn);
   }, [searchFrom, searchTo, filterType, sortOrder]);
+
+  // ── Pagination Logic ──
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentTickets = tickets.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(tickets.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    // Optional: Scroll smoothly back to top of the list
+    window.scrollTo({ top: 400, behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-[#F4F7F8] font-sans pb-20">
       
       {/* ── Hero & Header ── */}
       <div className="bg-[#35858E] pt-20 pb-28 px-6 text-center relative overflow-hidden">
-        {/* Decorative background shapes */}
         <div className="absolute top-[-50px] left-[-50px] w-64 h-64 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute bottom-[-50px] right-[-50px] w-80 h-80 bg-[#1d4b52]/30 rounded-full blur-3xl" />
         
@@ -155,22 +177,83 @@ export default function TicketPage() {
             Available Tickets 
             {!isLoading && <span className="text-[#35858E] font-black bg-[#EBF5F6] px-2 py-0.5 rounded-md text-sm">{tickets.length}</span>}
           </h2>
+          
+          {/* Top Pagination Status Indicator */}
+          {!isLoading && tickets.length > 0 && (
+            <span className="text-sm font-bold text-gray-400">
+              Showing {indexOfFirstItem + 1} - {Math.min(indexOfLastItem, tickets.length)} of {tickets.length}
+            </span>
+          )}
         </div>
 
         {/* Dynamic Content Rendering */}
         {isLoading ? (
-
           <div className="py-20 flex flex-col items-center justify-center text-[#35858E]">
             <MdOutlineHourglassEmpty className="animate-spin mb-4" size={40} />
             <p className="text-sm font-bold animate-pulse text-gray-500">Searching the best routes...</p>
           </div>
         ) : tickets.length > 0 ? (
-          /* Grid Layout for Cards */
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 place-items-center sm:place-items-start">
-            {tickets.map((ticket) => (
-              <TicketCard key={ticket._id || ticket.id} ticket={ticket} />
-            ))}
-          </div>
+          <>
+            {/* Grid Layout for Cards (Mapping currentTickets instead of tickets) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 place-items-center sm:place-items-start">
+              {currentTickets.map((ticket) => (
+                <TicketCard key={ticket._id || ticket.id} ticket={ticket} />
+              ))}
+            </div>
+
+            {/* ── Pagination Controls ── */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex items-center justify-center gap-2">
+                
+                {/* Previous Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+                    currentPage === 1 
+                      ? "text-gray-300 bg-gray-50 cursor-not-allowed" 
+                      : "text-gray-600 bg-white border border-gray-200 hover:bg-[#EBF5F6] hover:text-[#35858E] hover:border-[#35858E] shadow-sm"
+                  }`}
+                >
+                  <MdChevronLeft size={24} />
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: totalPages }, (_, index) => {
+                    const pageNumber = index + 1;
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={`w-10 h-10 rounded-xl text-sm font-extrabold transition-all shadow-sm ${
+                          currentPage === pageNumber
+                            ? "bg-[#35858E] text-white border-transparent scale-105 shadow-md shadow-[#35858E]/30"
+                            : "bg-white text-gray-500 border border-gray-200 hover:bg-[#EBF5F6] hover:text-[#35858E] hover:border-[#35858E]"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+                    currentPage === totalPages 
+                      ? "text-gray-300 bg-gray-50 cursor-not-allowed" 
+                      : "text-gray-600 bg-white border border-gray-200 hover:bg-[#EBF5F6] hover:text-[#35858E] hover:border-[#35858E] shadow-sm"
+                  }`}
+                >
+                  <MdChevronRight size={24} />
+                </button>
+                
+              </div>
+            )}
+          </>
         ) : (
           /* Empty State */
           <div className="bg-white rounded-3xl border border-gray-100 p-16 flex flex-col items-center justify-center text-center shadow-sm">

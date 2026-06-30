@@ -1,13 +1,18 @@
 import React from 'react';
 import TicketDetailsClient from './TicketDetailsClient';
+import { authClient } from '@/lib/auth-client';
+import { auth } from '@/lib/auth';
+import { headers } from 'next/headers';
 
 export default async function TicketDetailsPage({ params }) {
   const { id } = await params;
-  
+  const {token }= await auth.api.getToken({
+            headers: await headers()
+  })
   // Fetch ticket data on the server
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`, {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}` },
     cache: "no-store", // Ensures we always get the latest available quantity
   });
 

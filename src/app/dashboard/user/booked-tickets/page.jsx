@@ -26,49 +26,70 @@ const email = session?.user?.email;
 console.log(email)
 console.log(session)
 useEffect(() => {
-    // 1. If auth is still initializing, do nothing and let it spin
+    // Wait until the auth state is ready
     if (isPending) return;
 
-    // 2. If auth finished but there's no email, stop loading so it doesn't spin forever
+    // If user is not logged in
     if (!email) {
+        setBookings([]);
         setIsLoading(false);
         return;
     }
 
     const fetchBookings = async () => {
+        setIsLoading(true);
+
         try {
-            // FIX 1: Double-check your URL here! Ensure it shouldn't be `/api/user/bookings/`
+            // Get access token
+            const { data, error } = await authClient.token();
+
+            if (error) {
+                throw new Error(error.message || "Failed to get access token.");
+            }
+
+            const token = data?.token;
+
+            if (!token) {
+                throw new Error("Access token not found.");
+            }
+
             const res = await fetch(
                 `${process.env.NEXT_PUBLIC_API_URL}/user/bookings/${email}`,
                 {
-                    // FIX 2: Prevent Next.js/Browser from caching a previously empty result
-                    cache: 'no-store',
-                    headers: { 'Content-Type': 'application/json' }
+                    method: "GET",
+                    cache: "no-store",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
                 }
             );
 
-            if (!res.ok) throw new Error("Bad response from server");
-
-            const data = await res.json();
-            console.log(data);
-            // FIX 3: Safely extract the array in case your backend wraps it in an object
-            // e.g., if backend sends { success: true, bookings: [...] }
-            let validBookings = [];
-            if (Array.isArray(data)) {
-                validBookings = data;
-            } else if (data && data.bookings) {
-                validBookings = data.bookings;
-            } else if (data && data.data) {
-                validBookings = data.data;
+            if (!res.ok) {
+                const errorData = await res.text();
+                console.error("Server Error:", errorData);
+                throw new Error("Failed to fetch bookings.");
             }
-            
-            console.log("Fetched bookings:", validBookings); // Check your console!
-            setBookings(validBookings);
 
+            const result = await res.json();
+
+            let bookings = [];
+
+            if (Array.isArray(result)) {
+                bookings = result;
+            } else if (Array.isArray(result.bookings)) {
+                bookings = result.bookings;
+            } else if (Array.isArray(result.data)) {
+                bookings = result.data;
+            }
+
+            console.log("Bookings:", bookings);
+
+            setBookings(bookings);
         } catch (err) {
             console.error(err);
-            toast.error("Could not load your bookings.");
-            setBookings([]); // Ensure it stays an array even on error
+            toast.error(err.message || "Could not load your bookings.");
+            setBookings([]);
         } finally {
             setIsLoading(false);
         }

@@ -22,9 +22,19 @@ const TransactionPage = async () => {
   let isError = false;
 
   try {
+     const {token }= await auth.api.getToken({
+            headers: await headers()
+    })
+
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/transaction/${session.user.email}`,
-      { cache: 'no-store' } // Ensure fresh data on every load
+      { cache: 'no-store', 
+        headers:{
+           "Content-type":"application-json",
+            Authorization: `Bearer ${token}`
+        }
+      } // Ensure fresh data on every load
     );
 
     if (!response.ok) {

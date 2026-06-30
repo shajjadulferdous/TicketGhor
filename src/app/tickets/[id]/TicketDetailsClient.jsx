@@ -184,7 +184,7 @@ export default function TicketDetailsClient({ ticket }) {
             {/* Action Button */}
             <div className="mt-auto pt-6 border-t border-gray-100">
               <button
-                disabled={isButtonDisabled}
+                disabled={isButtonDisabled || session?.user?.role != 'user'}
                 onClick={() => setIsModalOpen(true)}
                 className={`w-full py-4 rounded-2xl font-black text-lg transition-all duration-300 ${
                   isButtonDisabled 

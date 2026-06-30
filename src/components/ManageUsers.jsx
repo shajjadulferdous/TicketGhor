@@ -9,6 +9,7 @@ import {
 } from "react-icons/md";
 import toast from "react-hot-toast";
 import { FaBan } from "react-icons/fa";
+import { authClient } from "@/lib/auth-client";
 
 const ROLE_MAP = {
   admin:  { bg: "bg-[#EBF5F6]", text: "text-[#35858E]", border: "border-[#D1E9EB]", label: "Admin" },

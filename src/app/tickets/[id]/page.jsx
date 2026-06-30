@@ -13,7 +13,7 @@ export default async function TicketDetailsPage({ params }) {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}`, {
     method: "GET",
     headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}` },
-    cache: "no-store", // Ensures we always get the latest available quantity
+    cache: "no-store", 
   });
 
   if (!response.ok) {

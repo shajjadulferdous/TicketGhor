@@ -132,11 +132,13 @@ export default function AddTicketPage() {
         status: "pending",
         createdAt: new Date().toISOString(),
       };
+      const { data, error } = await authClient.token();
 
+      const {token} = data;
       console.log(payload);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json" , Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
 

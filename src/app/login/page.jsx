@@ -58,7 +58,7 @@ const LoginPage = () => {
     try {
       const { data, error } = await authClient.signIn.social({
         provider: 'google',
-        callbackURL: '/', // Redirect destinations can be modified here
+        callbackURL: '/', 
       });
 
       if (error) {

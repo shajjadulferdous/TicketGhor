@@ -12,6 +12,7 @@ import {
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/router";
 
 const transportTypes = [
   { key: "bus",    label: "Bus",    icon: <MdDirectionsBus size={26} /> },
@@ -69,7 +70,7 @@ export default function AddTicketPage() {
   const [imagePreview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  
+  const router = useRouter();
   const [form, setForm] = useState({
     title: "", from: "", to: "", price: "", quantity: "", departure: "",
   });
@@ -144,7 +145,7 @@ export default function AddTicketPage() {
 
       if (!res.ok) throw new Error("Server error");
       toast.success("Ticket successfully submitted for review!");
-      
+      router.push('/dashboard/vendor/tickets');
     } catch (error) {
   console.error(error);
   toast.error(error.message || "Something went wrong");

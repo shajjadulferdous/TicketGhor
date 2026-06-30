@@ -12,7 +12,8 @@ import {
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/router";
+// Corrected import: useRouter from next/navigation for App Router
+import { useRouter } from "next/navigation"; 
 
 const transportTypes = [
   { key: "bus",    label: "Bus",    icon: <MdDirectionsBus size={26} /> },
@@ -31,9 +32,6 @@ const PERKS = [
   { key: "luggage",       label: "Extra luggage", icon: <FaSuitcase /> },
   { key: "charging",      label: "Charging port", icon: <FaPlug /> },
 ];
-
-// Mocked vendor session
-
 
 // ── Ultra-Premium Custom Input ──
 const PremiumInput = ({ label, id, startContent, required, readOnly, ...props }) => (
@@ -64,27 +62,30 @@ const PremiumInput = ({ label, id, startContent, required, readOnly, ...props })
 );
 
 export default function AddTicketPage() {
+  const router = useRouter(); // Initialize router here
   const [transport, setTransport] = useState("");
   const [perks, setPerks] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const router = useRouter();
+ 
   const [form, setForm] = useState({
     title: "", from: "", to: "", price: "", quantity: "", departure: "",
   });
 
   const { 
         data: session, 
-        isPending, //loading state
-        error, //error object
-        refetch //refetch the session
-    } = authClient.useSession() 
+        isPending, 
+        error, 
+        refetch 
+    } = authClient.useSession();
+    
   const user = session?.user;
-  const VENDOR ={}
+  const VENDOR = {};
   VENDOR.name = user?.name;
   VENDOR.email = user?.email;
+  
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const togglePerk = (key) =>
@@ -133,10 +134,10 @@ export default function AddTicketPage() {
         status: "pending",
         createdAt: new Date().toISOString(),
       };
+      
       const { data, error } = await authClient.token();
+      const { token } = data;
 
-      const {token} = data;
-      console.log(payload);
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" , Authorization: `Bearer ${token}` },
@@ -145,11 +146,13 @@ export default function AddTicketPage() {
 
       if (!res.ok) throw new Error("Server error");
       toast.success("Ticket successfully submitted for review!");
+      
+      // Use router.push for client-side navigation instead of redirect()
       router.push('/dashboard/vendor/tickets');
     } catch (error) {
-  console.error(error);
-  toast.error(error.message || "Something went wrong");
-} finally {
+      console.error(error);
+      toast.error(error.message || "Something went wrong");
+    } finally {
       setSubmitting(false);
     }
   };

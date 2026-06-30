@@ -3,11 +3,16 @@ import Link from 'next/link';
 import { FiCheckCircle, FiMail, FiArrowRight, FiShoppingBag } from 'react-icons/fi';
 import { Button } from '@heroui/react';
 import { stripe } from '@/lib/stripe';
+import { authClient } from '@/lib/auth-client';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
 
 export default async function Success({ searchParams }) {
   // Await searchParams for Next.js 15 compatibility
   const { session_id } = await searchParams;
-
+   const { token } = await auth.api.getToken(
+         {  headers: await headers()}
+    );
   if (!session_id) {
     throw new Error('Please provide a valid session_id (`cs_test_...`)');
   }
@@ -27,9 +32,8 @@ export default async function Success({ searchParams }) {
 
     try {
       
-       const { data, error } = await authClient.token();
+      
 
-       const {token} = data;
       // Send the order to the backend
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
         method: 'POST',

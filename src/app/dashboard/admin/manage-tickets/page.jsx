@@ -15,7 +15,7 @@ const ManageTicketPage = async() => {
             headers:await headers(),
             Authorization: `Bearer ${token}`
         },
-        cache:'no-cache'
+        cache:'no-store'
     })
     if (!response.ok){
         toast.error("server error");

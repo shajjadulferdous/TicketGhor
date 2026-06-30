@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FaCheck, FaTimes, FaBus, FaTrain, FaShip, FaPlane } from "react-icons/fa";
 import { MdArrowForward, MdOutlineHourglassEmpty } from "react-icons/md";
 import toast from "react-hot-toast";
+import { authClient } from "@/lib/auth-client";
 
 const TRANSPORT_ICON = {
   bus:   <FaBus size={14} />,
@@ -37,12 +38,13 @@ export default function ManageTickets({ initialTickets = [] }) {
        const { data, error } = await authClient.token();
 
       const {token} = data;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/tickets/${id}/status`, {
+      console.log(token);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tickets/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json",Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status: newStatus }),
       });
-
+      
       if (!res.ok) throw new Error("Request failed");
 
       setTickets((prev) =>
